@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>El Viaje de Pipo</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Comic Sans MS', cursive;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* Pantalla inicial negra */
+        #black-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 2000;
+            background: #000;
+        }
+
+        /* Pantalla de inicio */
+        #start-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 1000;
+            background: #000;
+            display: none;
+        }
+
+        #heart-loader {
+            width: 50px;
+            height: 50px;
+            background-image: url('https://i.imgur.com/MjupMuf.png');
+            background-size: contain;
+            margin-top: 20px;
+            animation: pulse 2s infinite;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Juego principal */
+        #game {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            border: 3px solid #ff69b4;
+            overflow: hidden;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        #background {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: 
+                url('https://i.pinimg.com/originals/46/ac/9e/46ac9e282d3c303934a72d941845785b.gif') center/cover,
+                linear-gradient(to bottom, 
+                    transparent 70%,
+                    rgba(210, 180, 140, 0.4) 90%);
+            filter: saturate(1.3) brightness(1.05);
+            z-index: 1;
+        }
+
+        #pipo {
+            width: 64px;
+            height: 64px;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            background-image: url('https://i.imgur.com/LIOGX4v.png');
+            background-size: 256px 64px;
+            image-rendering: pixelated;
+            animation: wagTail 1.5s steps(4) infinite;
+            z-index: 2;
+        }
+
+        #player {
+            width: 96px;
+            height: 96px;
+            position: absolute;
+            bottom: 0;
+            left: 400px;
+            background-image: url('https://i.imgur.com/8BBah51.png');
+            background-size: contain;
+            image-rendering: pixelated;
+            z-index: 2;
+            display: none;
+        }
+
+        .ground {
+            width: 100%;
+            height: 1px;
+            position: absolute;
+            bottom: 0;
+            z-index: 3;
+            background: transparent;
+        }
+
+        .letter {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('https://i.imgur.com/MjupMuf.png');
+            background-size: contain;
+            z-index: 2;
+            bottom: 20px;
+            display: none;
+        }
+
+        .dialog-box {
+            position: absolute;
+            width: 70%;
+            left: 15%;
+            top: 20%;
+            background: rgba(100, 100, 100, 0.85);
+            border: 3px solid #fff;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 20;
+            display: none;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.3);
+        }
+
+        .dialog-text {
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .continue-btn {
+            position: absolute;
+            right: 20px;
+            bottom: 10px;
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #final-scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        @keyframes wagTail {
+            from { background-position-x: 0; }
+            to { background-position-x: -256px; }
+        }
+
+        h1 {
+            text-align: center;
+            color: #ff69b4;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px white;
+            font-size: 2.5em;
+        }
+
+        #code-input {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+            border: 2px solid #ff69b4;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+        }
+
+        #submit-btn {
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: #ff69b4;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla negra inicial -->
+    <div id="black-screen">
+        <h1>Hola aventurero ArcanisOcean</h1>
+        <p>Por favor, ingresa el código especial para ingresar</p>
+        <input type="password" id="initial-code-input" maxlength="4">
+        <button id="initial-submit-btn">Ingresar</button>
+    </div>
+
+    <!-- Pantalla de carga -->
+    <div id="start-screen">
+        <h1>Cargando aventura...</h1>
+        <div id="heart-loader"></div>
+    </div>
+
+    <!-- Juego principal -->
+    <div id="game">
+        <div id="background"></div>
+        <div id="pipo"></div>
+        <div id="player"></div>
+        <div class="ground"></div>
+        
+        <!-- Cartas -->
+        <div class="letter" id="letter1"></div>
+        <div class="letter" id="letter2"></div>
+        <div class="letter" id="letter3"></div>
+        <div class="letter" id="letter4"></div>
+        <div class="letter" id="letter5"></div>
+        
+        <!-- Diálogos -->
+        <div class="dialog-box">
+            <p class="dialog-text"></p>
+            <button class="continue-btn">►</button>
+        </div>
+        
+        <!-- Final -->
+        <div id="final-scene">
+            <h2>Te amo de aquí a la luna</h2>
+        </div>
+    </div>
+
+    <script>
+        // ========== VARIABLES ==========
+        const gameElements = {
+            blackScreen: document.getElementById('black-screen'),
+            startScreen: document.getElementById('start-screen'),
+            game: document.getElementById('game'),
+            pipo: document.getElementById('pipo'),
+            player: document.getElementById('player'),
+            heartLoader: document.getElementById('heart-loader'),
+            initialCodeInput: document.getElementById('initial-code-input'),
+            initialSubmitBtn: document.getElementById('initial-submit-btn'),
+            dialogBox: document.querySelector('.dialog-box'),
+            dialogText: document.querySelector('.dialog-text'),
+            continueBtn: document.querySelector('.continue-btn'),
+            finalScene: document.getElementById('final-scene'),
+            letter1: document.getElementById('letter1'),
+            letter2: document.getElementById('letter2'),
+            letter3: document.getElementById('letter3'),
+            letter4: document.getElementById('letter4'),
+            letter5: document.getElementById('letter5')
+        };
+
+        // Estados del juego
+        const gameState = {
+            currentScene: 0,
+            isMoving: false,
+            isFacingRight: true,
+            isJumping: false,
+            currentPosition: 50,
+            moveSpeed: 5,
+            verticalPosition: 0,
+            jumpVelocity: 0,
+            gravity: 0.5,
+            initialJumpForce: 12,
+            groundLevel: 0,
+            currentDialog: 0,
+            currentDialogType: '',
+            sceneCompleted: false,
+            gameWidth: 800,
+            gameBorder: 3,
+            dialogs: {
+                letter1: [
+                    "Hola amor, sé que quizás esperabas algo más.",
+                    "Y honestamente me encantaría ser la mejor programadora del mundo para darte más amor y aprecio de maneras mucho mejores",
+                    "Pero pues, quiero que sea quizás el comienzo de una pequeña muestra de cariño",
+                    "Te gusta Pipo aquí ¿No? Se ve hermoso, y aunque te pedí una foto para verlo, realmente el verdadero regalo llegará pronto, mira esto como un previo a ese momento",
+                    "¿Qué puedo decir? No soy la mejor dibujando o programando, pero a veces es lindo, entregarte con amor esto"
+                ],
+                letter2: [
+                    "La primera vez que te vi, honestamente, sentí muchas cosas.",
+                    "Cuando hablábamos por primera vez. Puedo decir que me sentí perdida un poco. Pero recuerdo cada cosita, y recuerdo cada pequeño elemento de ti",
+                    "Cuando me mostraste tu videojuego, me sentí muy orgullosa de ti. Mezclabas arte con lo que más te gustaba, y entonces ahí entendí de alguna manera, que eras el tipo de persona que me gustaría conocer siempre",
+                    "creo que me gustas desde, el primer exacto momento que te vi."
+                ],
+                letter3: [
+                    "A veces confieso que, tengo ciertos miedos con respecto a todo. Me pregunto, solo un poco, si quizás me quieres de alguna forma",
+                    "Pero hay ciertos detalles tuyos que me hacen confirmar que me quieres, a tu manera y con tus procesos.",
+                    "Y entre más pasa el tiempo, honestamente más me enamoro de tu forma de amarme"
+                ],
+                letter4: [
+                    "Mi amor. Eres hermoso",
+                    "Eres inteligente",
+                    "Eres lo más lindo que tengo",
+                    "Confieso que amaría verte más seguido, para darte muchos más abrazos y besos de los que puedo",
+                    "Cuando terminamos la primera vez, no había día donde no extrañara tu amor",
+                    "Todas las noches me iba deseando recibir un mensaje tuyo, necesitaba sentir que no te convertirías en un extraño",
+                    "Y no quiero eso, no quiero que seas un extraño que en un futuro solo tenga recuerdos en común conmigo",
+                    "Sé que el futuro es incierto y que apenas está empezando todo, pero quiero amarte hasta donde me lo permitas"
+                ],
+                letter5: [
+                    "Mi primer amor, quizás sea una forma de describir lo que siento eres para mí en mi vida",
+                    "La primera vez que tomo una mano, la primera vez que unos ojos me hacen feliz, que un aroma me gusta tanto",
+                    "Te amo, de mil formas, de mil maneras",
+                    "Sé que yo no soy tu primer amor, y honestamente quizás me hace sentir un poco triste pensar que no formo parte de ningún momento nuevo para ti…",
+                    "o pensar que terminaremos y te olvidaras al mes de mi existencia ",
+                    "Pero, aún con eso, creo que todos podemos experimentar nuevas primeras veces, incluso después de haber vivido muchas más"
+                    ,"Por ejemplo, creo que es la primera vez que te hacen un videojuego pequeño en pixel art… jaja",
+                    "Te amo mi señor dueño de todas mis primeras veces"
+                ],
+                final: [
+                    "Sabes, Quiero formar parte de tus días felices. Pero también de tus días donde sientas que no puedes más",
+                    "No quiero nunca que creas que mi cariño es superficial…",
+                    "Para nada que lo es, al contrario, mi cariño tiene muchas etapas para mi, no ha sido fácil, para nada",
+                    "Estar noches sintiéndome mal, preguntándome si quizás mi corazón va a ser increíblemente roto",
+                    "Recordar momentos tristes, que para mi son dolorosos",
+                    "Pero aun con todo, niño hermoso, cada día elijo amarte y ser una versión de mi que merezcas",
+                    "Quiero que conmigo sientas paz, pero también sientas un lugar seguro, una persona que no te va a juzgar por aquellas partes tuyas que a veces no puedas comprender",
+                    "Creo que el amor es mas que salidas costosas, regalos caros. Creo que el amor es un acto de elegir a la otra persona, y desear construir algo",
+                    "Y yo quiero eso, quiero acompañarte y que tu me acompañes, quiero crecer un poco mas junto a ti, y conocer cada faceta tuya",
+                    "No quiero que conmigo sientas que tienes que ocultarte…Si el día es gris, ven conmigo, y molestémonos por ese día malo juntos, pero con la certeza de que mañana será diferente",
+                    "Amémonos, solo eso quiero y necesito en mi vida",
+                    "Quiero entregarte mis días bonitos y mis noches de desvelo, como esta…",
+                    "Aunque el código sea sencillo, realmente me duelen mis ojitos en este momento jaja",
+                    "Pero te amo, y creo que mi cansancio merece la pena si puedo darte aunque sea, una sonrisa minúscula"
+                ]
+            }
+        };
+
+        // ========== FUNCIONES DEL JUEGO ==========
+        function initGame() {
+            gameElements.continueBtn.addEventListener('click', nextDialog);
+            setupScene(1);
+            requestAnimationFrame(update);
+        }
+
+        function checkInitialAccessCode() {
+            if (gameElements.initialCodeInput.value === '1204') {
+                gameElements.initialCodeInput.style.borderColor = '#4CAF50';
+                gameElements.blackScreen.style.display = 'none';
+                gameElements.startScreen.style.display = 'flex';
+                gameElements.heartLoader.style.display = 'block';
+                
+                setTimeout(() => {
+                    gameElements.startScreen.style.display = 'none';
+                    gameElements.game.style.display = 'block';
+                    initGame();
+                }, 2000);
+            } else {
+                gameElements.initialCodeInput.style.borderColor = '#f44336';
+                alert('Código incorrecto. Intenta nuevamente.');
+                gameElements.initialCodeInput.value = '';
+            }
+        }
+
+        function setupScene(sceneNumber) {
+            console.log(`Cargando escena ${sceneNumber}`);
+            gameState.currentScene = sceneNumber;
+            gameState.sceneCompleted = false;
+            
+            // Resetear todos los elementos
+            gameElements.player.style.display = 'none';
+            gameElements.letter1.style.display = 'none';
+            gameElements.letter2.style.display = 'none';
+            gameElements.letter3.style.display = 'none';
+            gameElements.letter4.style.display = 'none';
+            gameElements.letter5.style.display = 'none';
+            gameElements.dialogBox.style.display = 'none';
+            
+            // Posición inicial de Pipo
+            resetPipoPosition();
+            
+            // Configurar elementos según la escena
+            switch(sceneNumber) {
+                case 1: // Solo Pipo
+                    break;
+                    
+                case 2: // Carta 1
+                    gameElements.letter1.style.display = 'block';
+                    gameElements.letter1.style.left = '400px';
+                    break;
+                    
+                case 3: // Carta 2
+                    gameElements.letter2.style.display = 'block';
+                    gameElements.letter2.style.left = '400px';
+                    break;
+                    
+                case 4: // Carta 3
+                    gameElements.letter3.style.display = 'block';
+                    gameElements.letter3.style.left = '400px';
+                    break;
+                    
+                case 5: // Carta 4
+                    gameElements.letter4.style.display = 'block';
+                    gameElements.letter4.style.left = '400px';
+                    break;
+                    
+                case 6: // Carta 5
+                    gameElements.letter5.style.display = 'block';
+                    gameElements.letter5.style.left = '400px';
+                    break;
+                    
+                case 7: // Escena final con jugador
+                    gameElements.player.style.display = 'block';
+                    gameElements.player.style.left = '400px';
+                    break;
+            }
+        }
+
+        function resetPipoPosition() {
+            gameState.currentPosition = 50;
+            gameElements.pipo.style.left = '50px';
+            gameState.isMoving = false;
+            setAnimation('idle');
+        }
+
+        function showDialog(dialogType) {
+            if (gameState.currentDialogType !== dialogType) {
+                gameState.currentDialog = 0;
+                gameState.currentDialogType = dialogType;
+            }
+            gameElements.dialogText.textContent = gameState.dialogs[dialogType][gameState.currentDialog];
+            gameElements.dialogBox.style.display = 'block';
+            gameState.isMoving = false;
+        }
+
+        function nextDialog() {
+            gameState.currentDialog++;
+            
+            if (gameState.currentDialog < gameState.dialogs[gameState.currentDialogType].length) {
+                gameElements.dialogText.textContent = gameState.dialogs[gameState.currentDialogType][gameState.currentDialog];
+            } else {
+                gameElements.dialogBox.style.display = 'none';
+                gameState.isMoving = true;
+                gameState.sceneCompleted = true;
+                
+                // Si es el diálogo final, mostrar la escena final
+                if (gameState.currentDialogType === 'final') {
+                    showFinalScene();
+                }
+            }
+        }
+
+        function showFinalScene() {
+            gameElements.finalScene.style.display = 'flex';
+            
+            // Ocultar todos los elementos
+            document.querySelectorAll('#game > div').forEach(el => {
+                if (!el.classList.contains('dialog-box') && el.id !== 'final-scene') {
+                    el.style.display = 'none';
+                }
+            });
+            
+            // Transición a negro gradual
+            let opacity = 0;
+            const fadeInterval = setInterval(() => {
+                opacity += 0.02;
+                gameElements.finalScene.style.background = `rgba(0,0,0,${opacity})`;
+                
+                if (opacity >= 0.9) {
+                    clearInterval(fadeInterval);
+                }
+            }, 50);
+        }
+
+        function setAnimation(state) {
+            gameElements.pipo.style.animation = 'none';
+            void gameElements.pipo.offsetWidth;
+
+            if (state === 'idle') {
+                gameElements.pipo.style.backgroundImage = 'url(https://i.imgur.com/LIOGX4v.png)';
+                gameElements.pipo.style.backgroundSize = '256px 64px';
+                gameElements.pipo.style.animation = 'wagTail 1.5s steps(4) infinite';
+            } else if (state === 'walk') {
+                gameElements.pipo.style.backgroundImage = 'url(https://i.imgur.com/wLEY2g4.png)';
+                gameElements.pipo.style.backgroundSize = '320px 64px';
+                gameElements.pipo.style.animation = 'walkAnimation 0.8s steps(5) infinite';
+            } else if (state === 'jump') {
+                gameElements.pipo.style.backgroundImage = 'url(https://i.imgur.com/HqbPnAt.png)';
+                gameElements.pipo.style.backgroundSize = '64px 64px';
+            }
+
+            gameElements.pipo.style.transform = gameState.isFacingRight ? 'scaleX(1)' : 'scaleX(-1)';
+        }
+
+        // Animación de caminar
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes walkAnimation {
+                from { background-position-x: 0; }
+                to { background-position-x: -320px; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Eventos de teclado
+        document.addEventListener('keydown', (e) => {
+            if (gameState.currentScene === 0 || gameElements.dialogBox.style.display === 'block') return;
+            
+            if (e.key === 'ArrowRight') {
+                gameState.isMoving = true;
+                gameState.isFacingRight = true;
+                if (!gameState.isJumping) setAnimation('walk');
+            } else if (e.key === 'ArrowLeft') {
+                gameState.isMoving = true;
+                gameState.isFacingRight = false;
+                if (!gameState.isJumping) setAnimation('walk');
+            } else if (e.key === ' ' && !gameState.isJumping) {
+                gameState.isJumping = true;
+                gameState.jumpVelocity = gameState.initialJumpForce;
+                setAnimation('jump');
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                gameState.isMoving = false;
+                if (!gameState.isJumping) setAnimation('idle');
+            }
+        });
+
+        // Bucle principal del juego
+        function update() {
+            // Movimiento horizontal
+            if (gameState.isMoving && gameElements.dialogBox.style.display !== 'block') {
+                gameState.currentPosition += gameState.isFacingRight ? gameState.moveSpeed : -gameState.moveSpeed;
+                
+                // Calcular el borde derecho considerando el borde rosado
+                const rightEdge = gameState.gameWidth - gameState.gameBorder - 64; // 64 = ancho de Pipo
+                gameState.currentPosition = Math.max(0, Math.min(rightEdge, gameState.currentPosition));
+                gameElements.pipo.style.left = `${gameState.currentPosition}px`;
+                
+                // Verificar si llegó al borde derecho
+                if (gameState.isFacingRight && gameState.currentPosition >= rightEdge) {
+                    handleEdgeReached();
+                }
+                
+                // Verificar interacciones con elementos
+                checkInteractions();
+            }
+
+            // Física de salto
+            if (gameState.isJumping) {
+                gameState.jumpVelocity -= gameState.gravity;
+                gameState.verticalPosition += gameState.jumpVelocity;
+                
+                if (gameState.verticalPosition <= gameState.groundLevel) {
+                    gameState.verticalPosition = gameState.groundLevel;
+                    gameState.isJumping = false;
+                    setAnimation(gameState.isMoving ? 'walk' : 'idle');
+                }
+                
+                gameElements.pipo.style.bottom = `${gameState.verticalPosition}px`;
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        function handleEdgeReached() {
+            console.log(`Borde alcanzado en escena ${gameState.currentScene}`);
+            
+            // Avanzar a la siguiente escena
+            if (gameState.currentScene < 7) {
+                setupScene(gameState.currentScene + 1);
+            } else {
+                showFinalScene();
+            }
+        }
+
+        function checkInteractions() {
+            // Detección de carta 1 (Escena 2)
+            if (gameState.currentScene === 2 && 
+                gameState.currentPosition > 350 && 
+                gameState.currentPosition < 450 &&
+                !gameState.sceneCompleted) {
+                showDialog('letter1');
+            }
+            
+            // Detección de carta 2 (Escena 3)
+            if (gameState.currentScene === 3 && 
+                gameState.currentPosition > 350 && 
+                gameState.currentPosition < 450 &&
+                !gameState.sceneCompleted) {
+                showDialog('letter2');
+            }
+            
+            // Detección de carta 3 (Escena 4)
+            if (gameState.currentScene === 4 && 
+                gameState.currentPosition > 350 && 
+                gameState.currentPosition < 450 &&
+                !gameState.sceneCompleted) {
+                showDialog('letter3');
+            }
+            
+            // Detección de carta 4 (Escena 5)
+            if (gameState.currentScene === 5 && 
+                gameState.currentPosition > 350 && 
+                gameState.currentPosition < 450 &&
+                !gameState.sceneCompleted) {
+                showDialog('letter4');
+            }
+            
+            // Detección de carta 5 (Escena 6)
+            if (gameState.currentScene === 6 && 
+                gameState.currentPosition > 350 && 
+                gameState.currentPosition < 450 &&
+                !gameState.sceneCompleted) {
+                showDialog('letter5');
+            }
+            
+            // Detección de jugador (Escena 7)
+            if (gameState.currentScene === 7 && 
+                gameState.currentPosition > 350 && 
+                gameState.currentPosition < 450 &&
+                !gameState.sceneCompleted) {
+                showDialog('final');
+            }
+        }
+
+        // Iniciar el juego cuando se carga la página
+        window.addEventListener('load', () => {
+            gameElements.initialSubmitBtn.addEventListener('click', checkInitialAccessCode);
+            
+            gameElements.initialCodeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkInitialAccessCode();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
